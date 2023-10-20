@@ -13,6 +13,10 @@ const CardComponent = ({
   cardTitle,
   cardText,
 }) => {
+
+  /**
+   * Consts declaradas para o gerenciamento de estados com o hook useState
+   */
   const [selectedVehicleType, setSelectedVehicleType] = useState(null);
   const [selectedBrand, setSelectedBrand] = useState(null);
   const [selectedModel, setSelectedModel] = useState(null);
@@ -23,8 +27,16 @@ const CardComponent = ({
   const [currentStep, setCurrentStep] = useState(1);
   const [vehicle, setVehicle] = useState(null)
 
+  /**
+   * Consts declaradas com a urlbase
+   */
   const url = 'https://parallelum.com.br/fipe/api/v1';
 
+  /**
+   * Function para setar os selects quando o selectoption do tipo de veiculo for alterado
+   * @param string selectedOption value do select tipo de veiculos
+   * @function fetchBrands função para buscar as marcas com o tipo de veiculo
+   */
   const handleVehicleTypeChange = (selectedOption) => {
     setSelectedVehicleType(selectedOption);
     setSelectedBrand(null);
@@ -34,6 +46,12 @@ const CardComponent = ({
     fetchBrands(selectedOption);
   };
 
+  /**
+   * Function para buscar as marcas de acordo com o tipo de veiculo
+   * @param string vehicleType value do select tipo de veiculos
+   * @function fetch requisicao para endpoint da API 
+   * @function setBrand seta o resultado da requisicao em brand
+   */
   const fetchBrands = (vehicleType) => {
     if (vehicleType) {
       fetch(`${url}/${vehicleType.value}/marcas`)
@@ -51,9 +69,15 @@ const CardComponent = ({
     }
   };
 
-  const fetchModels = (brand) => {
-    if (brand) {
-      fetch(`${url}/${selectedVehicleType.value}/marcas/${brand.value}/modelos`)
+  /**
+   * Function para buscar os modelos de acordo com o tipo de veiculo e marca
+   * @param const brand com value do select marcas
+   * @function fetch requisicao para endpoint da API 
+   * @function setModels seta o resultado da requisicao em models
+   */
+  const fetchModels = () => {
+    if (selectedVehicleType) {
+      fetch(`${url}/${selectedVehicleType.value}/marcas/${selectedBrand.value}/modelos`)
         .then((response) => response.json())
         .then((data) => {
           const formattedData = data.modelos.map((item) => ({
@@ -68,6 +92,11 @@ const CardComponent = ({
     }
   };
 
+  /**
+   * Function para buscar os anos de acordo com o tipo de veiculo, marca e modelo
+   * @function fetch requisicao para endpoint da API 
+   * @function setYears seta o resultado da requisicao em vehicle
+   */
   const fetchYear = () => {
     if (selectedVehicleType && selectedBrand && selectedModel) {
       fetch(`${url}/${selectedVehicleType.value}/marcas/${selectedBrand.value}/modelos/${selectedModel.value}/anos`)
@@ -85,7 +114,12 @@ const CardComponent = ({
     }
   };
 
-  const handleSearch = () => {  
+  /**
+   * Function para buscar o veiculos de acordo com o tipo de veiculo, marca, modelo e ano
+   * @function fetch requisicao para endpoint da API 
+   * @function setVehicle seta o resultado da requisicao em years
+   */
+  const fetchVehicle = () => {  
     if (selectedVehicleType && selectedBrand && selectedModel && selectedYear) {
       fetch(`${url}/${selectedVehicleType.value}/marcas/${selectedBrand.value}/modelos/${selectedModel.value}/anos/${selectedYear.value}`)
         .then((response) => response.json())
@@ -109,6 +143,9 @@ const CardComponent = ({
     }
   };
 
+  /**
+   * Function exportar a tabela criado para pdf
+   */
   const exportToPDF = () => {
     const doc = new jsPDF();
     const table = document.getElementById('table-to-export');
@@ -120,6 +157,9 @@ const CardComponent = ({
     });
   };
 
+  /**
+   * Function exportar a tabela criado para XLS
+   */
   const exportToXLS = () => {
     const table = document.getElementById('table-to-export');
     const ws = XLSX.utils.table_to_sheet(table);
@@ -128,6 +168,9 @@ const CardComponent = ({
     XLSX.writeFile(wb, 'tabela.xlsx');
   };
 
+  /**
+   * Const para preencher o selectComponent de tipo de veiculos
+   */
   const options = [
     { label: 'carros', value: 'carros' },
     { label: 'motos', value: 'motos' },
@@ -141,6 +184,8 @@ const CardComponent = ({
         <Card.Body>
           <Card.Title>{cardTitle}</Card.Title>
           {cardText}
+
+          {/* dependendo do passo, mostra o elemento */}
           {currentStep >= 1 && (
             <SelectComponent
               name="veiculos"
@@ -155,10 +200,10 @@ const CardComponent = ({
               labelText="Marca:"
               options={brands}
               selectedValue={selectedBrand}
-              onSelectionChange={(brandOption) => {
-                setSelectedBrand(brandOption);
-                setCurrentStep(3);
-                fetchModels(brandOption);
+              onSelectionChange={(brandOption) => { 
+                setSelectedBrand(brandOption); // seta opcao selecionada
+                setCurrentStep(3); // set o passo dos selects que se encontra 
+                fetchModels(); //chama funcao de busca 
               }}
             />
           )}
@@ -169,9 +214,9 @@ const CardComponent = ({
               options={models}
               selectedValue={selectedModel}
               onSelectionChange={(modelOption) => {
-                setSelectedModel(modelOption);
-                setCurrentStep(4);
-                fetchYear();
+                setSelectedModel(modelOption); // seta opcao selecionada
+                setCurrentStep(4); // set o passo dos selects que se encontra 
+                fetchYear(); //chama funcao de busca
               }}
             />
           )}
@@ -184,7 +229,11 @@ const CardComponent = ({
               onSelectionChange={(yearOption) => setSelectedYear(yearOption)}
             />
           )}
-          <ButtonComponent classColor="success" textButton="BUSCAR" onClick={handleSearch} />
+
+          {/* se todos os selects forem preenchidos, mostra o botao */}
+          {selectedVehicleType && selectedBrand && selectedModel && selectedYear &&
+            <ButtonComponent classColor="success" textButton="BUSCAR" onClick={fetchVehicle} />
+          }
         </Card.Body>
       </Card>
       {vehicle && vehicle !== null && (

@@ -21,6 +21,9 @@ class FipeApiService
 
     public $api;
 
+    /**
+     * Constroi a basa de url utilizada para a requisição da api juntamente com seus headers.
+    */
     public function __construct() {
         $this->api = Http::withHeaders([
             'Content-Type' => 'Application/json'
